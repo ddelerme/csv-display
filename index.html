@@ -11,7 +11,11 @@
   <body>
     <style>
       body {
-        height: 3000px;
+          margin: 0;
+          padding: 0
+      }
+      li {
+          list-style: none;
       }
       .table {
         width: 100%;
@@ -33,8 +37,40 @@
         width: 50px;
         height: 50px;
       }
+      .back-to-top {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          width: 40px;
+          height: 40px;
+          border-radius: 100%;
+          background-color:#efefef;
+      }
+      .wrapper {
+          position: relative;
+      }
+      nav {
+        position: fixed;
+        position: -webkit-sticky;
+        position: sticky;
+        top:0;         
+        width: 100%;
+        background: #efefef;
+        padding: 10px 0;
+      }
     </style>
-    <div class="table"></div>
+    <div class="wrapper">
+        <nav>
+            <ul>
+                <li>
+                    <!-- <label for="search">Go to Line:</label>
+                    <input id="search" type="text"> -->
+                </li>
+            </ul>
+        </nav>
+        <div class="table"></div>
+        <button id="back_top" class="back-to-top"><svg viewBox="0 0 32 32" class="icon icon-chevron-top" viewBox="0 0 32 32" aria-hidden="true"><path d="M15.997 13.374l-7.081 7.081L7 18.54l8.997-8.998 9.003 9-1.916 1.916z"/></svg></button>
+    </div>
   </body>
   <script>
     $(document).ready(function() {
@@ -45,6 +81,9 @@
           processData(data);
         }
       });
+      $('#back_top').click( function(){
+        $("html, body").animate({ scrollTop: "0" },1000); 
+      })
     });
     var csv_state = {
       count: 0,
@@ -113,6 +152,9 @@
                 }
             },
             false);
+        },
+        gotToLine: function(){
+            
         }
     }
     // initialize
@@ -120,5 +162,7 @@
       csv.scrollEvent()
     }
 
+
+    
   </script>
 </html>
