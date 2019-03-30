@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+    <script src="./_js/jquery-3.3.1.min.js"></script>
+    <script src="./_js/jquery.csv.min.js"></script>
+  </head>
+  <body>
+    <style>
+      body {
+        height: 3000px;
+      }
+      .table {
+        width: 100%;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: repeat(14, 1fr);
+        grid-row-gap: 10px;
+        width: 100%;
+      }
+      .cell {
+        border: 1px solid #ccc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .cell-img {
+        width: 50px;
+        height: 50px;
+      }
+    </style>
+    <div class="table"></div>
+  </body>
+  <script>
+    $(document).ready(function() {
+      $.ajax({
+        type: "GET",
+        url: "./_data/csv-data-2.csv",
+        success: function(data) {
+          processData(data);
+        }
+      });
+    });
+    var csv_state = {
+      count: 0,
+      count_increase: 100, // increase rows displayed on scroll
+      breakpoint: 400,  // set px scrolled to trigger next lazy load group
+      breakpoint_increase: 400, // increments breakpoint 
+      csvArr:[]
+    };
+    function processData(csvData) {
+        
+    // jquery plugin to parse csv into array
+    csv_state.csvArr = $.csv.toArrays(csvData);
+
+    var csv = {
+        buildData: function(arr) {
+            for (var index = csv_state.count; index < arr.length; index++) {
+            var element10 = arr[index];
+
+            var els = "";
+            els += `<div class="row"><div class="cell cell-id" id="item_${index}">${index}</div>`
+            element10.forEach((element) => {
+                    els += element.indexOf('.jpg')>0 ? `<div class="cell cell-div"><img class="cell-img" src="./_images/${element}"/></div>` : `<div class="cell cell-div">${element}</div>`
+            })
+            els += `</div>`
+            var tempWrapper = document.createElement('div')
+                tempWrapper.innerHTML = els
+            var getChildren = tempWrapper.childNodes
+            var doc = new DOMParser().parseFromString(els, 'text/html').body.childNodes;
+            var table = document.querySelector('.table')
+            doc.forEach( function(i) {
+                table.appendChild(i)
+            })
+            if (index > csv_state.count + (csv_state.count_increase - 2)) {
+                break;
+            }
+            }
+        },
+        getDocHeight: function() {
+            var D = document;
+            return Math.max(
+            D.body.scrollHeight,
+            D.documentElement.scrollHeight,
+            D.body.offsetHeight,
+            D.documentElement.offsetHeight,
+            D.body.clientHeight,
+            D.documentElement.clientHeight
+            );
+        },
+        amountscrolled: function() {
+            var winheight =
+            window.innerHeight ||
+            (document.documentElement || document.body).clientHeight;
+            var docheight = csv.getDocHeight();
+            var scrollTop = window.pageYOffset || (document.documentElement || document.body.parentNode || document.body).scrollTop;
+            var trackLength = docheight - winheight;
+            var pctScrolled = Math.floor(scrollTop);
+            return pctScrolled;
+        },
+        scrollEvent: function(){
+            window.addEventListener("scroll",function() {
+            var scroll_amount = csv.amountscrolled();
+                if (scroll_amount > csv_state.breakpoint) {
+                    csv_state.breakpoint += csv_state.breakpoint_increase;
+                    csv_state.count += csv_state.count_increase;
+                    csv.buildData(csv_state.csvArr)
+                }
+            },
+            false);
+        }
+    }
+    // initialize
+      csv.buildData(csv_state.csvArr);
+      csv.scrollEvent()
+    }
+
+  </script>
+</html>
