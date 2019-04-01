@@ -58,16 +58,25 @@
         background: #efefef;
         padding: 10px 0;
       }
+      .nav ul {
+        display: flex
+      }
     </style>
     <div class="wrapper">
-        <nav>
+        <!-- <nav class="nav">
             <ul>
                 <li>
-                    <!-- <label for="search">Go to Line:</label>
-                    <input id="search" type="text"> -->
+                    <label for="go_to_line">Go to Line:</label>
+                    <input id="go_to_line" type="number">
+                    <button id="go_to_submit">GO</button>
+                </li>
+                <li>
+                    <label for="search">Search:</label>
+                    <input id="search" type="search">
+                    <button id="search_submit">Search</button>
                 </li>
             </ul>
-        </nav>
+        </nav> -->
         <div class="table"></div>
         <button id="back_top" class="back-to-top"><svg viewBox="0 0 32 32" class="icon icon-chevron-top" viewBox="0 0 32 32" aria-hidden="true"><path d="M15.997 13.374l-7.081 7.081L7 18.54l8.997-8.998 9.003 9-1.916 1.916z"/></svg></button>
     </div>
@@ -90,7 +99,7 @@
       count_increase: 100, // increase rows displayed on scroll
       breakpoint: 400,  // set px scrolled to trigger next lazy load group
       breakpoint_increase: 400, // increments breakpoint 
-      csvArr:[]
+      csvArr:[],
     };
     function processData(csvData) {
         
@@ -98,26 +107,34 @@
     csv_state.csvArr = $.csv.toArrays(csvData);
 
     var csv = {
-        buildData: function(arr) {
+        buildData: function(arr,scrollPosition) {
             for (var index = csv_state.count; index < arr.length; index++) {
-            var element10 = arr[index];
+              var element10 = arr[index];
 
-            var els = "";
-            els += `<div class="row"><div class="cell cell-id" id="item_${index}">${index}</div>`
-            element10.forEach((element) => {
+              var els = "";
+              els += `<div class="row"><div class="cell cell-id" id="item_${index + 1}">${index + 1}</div>`
+              element10.forEach((element) => {
                     els += element.indexOf('.jpg')>0 ? `<div class="cell cell-div"><img class="cell-img" src="./_images/${element}"/></div>` : `<div class="cell cell-div">${element}</div>`
             })
-            els += `</div>`
-            var tempWrapper = document.createElement('div')
-                tempWrapper.innerHTML = els
-            var getChildren = tempWrapper.childNodes
-            var doc = new DOMParser().parseFromString(els, 'text/html').body.childNodes;
-            var table = document.querySelector('.table')
+                  els += `</div>`
+              var tempWrapper = document.createElement('div')
+                  tempWrapper.innerHTML = els
+              var getChildren = tempWrapper.childNodes
+              var doc = new DOMParser().parseFromString(els, 'text/html').body.childNodes;
+              var table = document.querySelector('.table')
             doc.forEach( function(i) {
                 table.appendChild(i)
             })
+            scrollPosition = scrollPosition || null
+            var row_height = document.querySelector('.row').offsetHeight
+            if (((scrollPosition + 1) * row_height) > csv_state.breakpoint && (scrollPosition + 1) != null)    {
+              // console.log(csv_state.breakpoint)
+                    // csv_state.breakpoint += 10;
+                    // csv_state.count += 10;
+                    // csv.buildData(csv_state.csvArr,scrollPosition)
+                }
             if (index > csv_state.count + (csv_state.count_increase - 2)) {
-                break;
+                  break;
             }
             }
         },
@@ -153,13 +170,72 @@
             },
             false);
         },
-        gotToLine: function(){
+        initEvents: function(){
+          csv.scrollEvent()
+          var nav = document.querySelector('.nav');
+          nav.addEventListener("click", csv.navButtons)
+        },
+        scrollToRow: function(row){
+          
+          var go_to_row = $("#item_"+(row - 1)+"")
+          if(go_to_row.length > 0){
+            go_to_row = go_to_row.offset().top
+            $('html,body').animate({scrollTop: go_to_row - 30},'slow');
+          }else{
+            // var temp = csv_state.count_increase
+            //     csv_state.count = row
+            //     csv_state.count_increase = row
+            // csv.buildData(csv_state.csvArr,false);
+            // csv_state.count_increase = temp
+            // setTimeout(function(){
+            //   console.log(go_to_row.length)
+            //   // $('html,body').animate({scrollTop: go_to_row - 30},'slow');
+            // },500)
             
+          }
+        },
+        navButtons: function(e){
+          var btn = e.target.id
+          if(e.target.localName == "button"){
+            var btn_input = e.target.parentNode.children[1].value
+            // search_submit
+            // go_to_submit
+            if(btn == 'go_to_submit'){
+              // if go to line check if line is visible
+              var row_id = document.querySelectorAll('.row')
+              
+              if(typeof row_id[btn_input - 1] != "undefined"){
+                var row = btn_input - 1
+                csv.scrollToRow(row)
+                console.log('1')
+              }else if (btn_input > csv_state.csvArr.length) {
+                alert('Sorry unable to find line '+ btn_input)
+                console.log('2')
+              } else {
+                var scroll_length = btn_input - 1
+                csv.buildData(csv_state.csvArr,scroll_length)
+                console.log('3')
+                // setTimeout(function(){
+                //   console.log('3a')
+                //   csv.scrollToRow(scroll_length)
+                // },500)
+              }
+                // console.log('womp womp')
+
+
+              
+              // if visible go to line
+              // if not visible and in array, scroll to make available 
+              // if line is in array and not visible, scroll to make available
+
+            }
+          }
         }
     }
     // initialize
       csv.buildData(csv_state.csvArr);
-      csv.scrollEvent()
+      csv.initEvents()
+
     }
 
 
